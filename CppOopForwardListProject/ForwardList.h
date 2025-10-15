@@ -28,6 +28,9 @@ public:
 	bool Next() override;
 	T Current() override;
 	bool IsEnd() override;
+
+	Node<T>* CurrentNode();
+	ForwardListIterator<T> operator+(size_t index);
 };
 
 
@@ -47,6 +50,11 @@ public:
 
 	void PushFront(T value);
 	T PopFront();
+	ForwardListIterator<T> Find(T value);
+	ForwardListIterator<T> Insert(
+		ForwardListIterator<T> iterator,
+		T value);
+	T Erase(ForwardListIterator<T> iterator);
 
 	ForwardListIterator<T> GetIterator();
 
@@ -88,6 +96,44 @@ inline T ForwardList<T>::PopFront()
 
 	Node<T>* node = head;
 	head = head->next;
+	delete node;
+	size--;
+
+	return value;
+}
+
+template<typename T>
+inline ForwardListIterator<T> ForwardList<T>::Find(T value)
+{
+	ForwardListIterator<T> iterator(this);
+	for (; !iterator.IsEnd(); iterator.Next())
+		if (iterator.Current() == value)
+			return iterator;
+
+	return iterator;
+}
+
+template<typename T>
+inline ForwardListIterator<T> ForwardList<T>::Insert(ForwardListIterator<T> iterator, T value)
+{
+	Node<T>* node = new Node<T>;
+	node->value = value;
+	node->next = iterator.CurrentNode()->next;
+	iterator.CurrentNode()->next = node;
+	
+	size++;
+	iterator.Next();
+
+	return iterator;
+}
+
+template<typename T>
+inline T ForwardList<T>::Erase(ForwardListIterator<T> iterator)
+{
+	T value = iterator.CurrentNode()->next->value;
+	Node<T>* node = iterator.CurrentNode()->next;
+	iterator.CurrentNode()->next = iterator.CurrentNode()->next->next;
+
 	delete node;
 	size--;
 
@@ -146,4 +192,22 @@ template<typename T>
 inline bool ForwardListIterator<T>::IsEnd()
 {
 	return !this->current;
+}
+
+template<typename T>
+inline Node<T>* ForwardListIterator<T>::CurrentNode()
+{
+	return current;
+}
+
+template<typename T>
+inline ForwardListIterator<T> ForwardListIterator<T>::operator+(size_t index)
+{
+	while (!this->IsEnd() && index) 
+	{
+		this->Next();
+		index--;
+	}
+		
+	return *this;
 }
